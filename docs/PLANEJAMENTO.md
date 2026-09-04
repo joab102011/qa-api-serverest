@@ -56,6 +56,10 @@ esquemas (asserts de contrato)
 - Cleanup com `DELETE /usuarios/{_id}` ao final dos testes
 - `workers: 1` para respeitar o espírito do rate limit e reduzir flakiness na API compartilhada
 
+## Padrao DADO / QUANDO / ENTAO
+
+Cada cenario nas specs usa steps explicitos via `dado()`, `quando()` e `entao()` (`src/ajudas/passos.bdd.ts`), gerando `test.step` no Playwright — mesmo padrao BDD dos desafios anteriores (Postman).
+
 ## CI/CD
 
 - Stage `testar`: `npx playwright test`
