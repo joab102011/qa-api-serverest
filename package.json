@@ -1,0 +1,30 @@
+{
+  "name": "qa-api-serverest",
+  "version": "1.0.0",
+  "description": "Automação de testes de API da ServeRest com Playwright e TypeScript — desafio QA Automation",
+  "private": true,
+  "scripts": {
+    "testar": "playwright test",
+    "testar:login": "playwright test testes/login.spec.ts",
+    "testar:usuarios": "playwright test testes/usuarios.crud.spec.ts testes/usuarios.negativos.spec.ts",
+    "testar:ui": "playwright test --ui",
+    "relatorio": "playwright show-report",
+    "relatorio:allure": "allure generate allure-results --clean -o allure-report && allure open allure-report"
+  },
+  "keywords": [
+    "playwright",
+    "api",
+    "serverest",
+    "qa",
+    "automacao"
+  ],
+  "author": "Joab Cruz",
+  "license": "MIT",
+  "devDependencies": {
+    "@playwright/test": "^1.49.0",
+    "@types/node": "^22.10.0",
+    "allure-commandline": "^2.32.0",
+    "allure-playwright": "^3.0.6",
+    "typescript": "^5.7.2"
+  }
+}
