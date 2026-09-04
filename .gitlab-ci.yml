@@ -1,3 +1,15 @@
+# =============================================================================
+# GitLab CI — INATIVO por padrao
+# =============================================================================
+# Pipeline espelhada no GitHub Actions (.github/workflows/ci.yml).
+# Nao cria pipeline automatica. Para ativar: altere workflow.rules abaixo
+# (ex.: permitir default branch / MR). Detalhes: README.md (Estrategia de CI).
+# =============================================================================
+
+workflow:
+  rules:
+    - when: never # CI inativo — troque por rules de branch/MR ao ativar
+
 stages:
   - testar
   - relatorio

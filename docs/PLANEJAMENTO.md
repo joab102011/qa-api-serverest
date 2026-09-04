@@ -2,7 +2,7 @@
 
 ## Objetivo
 
-Atender o Case Técnico de **Automação de Testes de API** com cobertura funcional de autenticação JWT e CRUD de usuários na [ServeRest](https://serverest.dev/), integração CI (GitLab) e relatórios como artefato.
+Atender o Case Técnico de **Automação de Testes de API** com cobertura funcional de autenticação JWT e CRUD de usuários na [ServeRest](https://serverest.dev/), CI preparado (GitLab + GitHub Actions, inativos) e relatórios como artefato.
 
 ## Decisão de stack
 
@@ -62,13 +62,21 @@ Cada cenario nas specs usa steps explicitos via `dado()`, `quando()` e `entao()`
 
 ## CI/CD
 
-- Stage `testar`: `npx playwright test`
-- Artifacts **sempre** (`when: always`): HTML, Allure results, JUnit
-- Stage `relatorio`: gera Allure HTML quando possível
+Dois YAMLs espelhados, **inativos por padrão** (ver README — Estratégia de CI):
+
+| Arquivo | Uso |
+|---------|-----|
+| `.gitlab-ci.yml` | Alinhamento com o Case Mobile (GitLab CI no enunciado) |
+| `.github/workflows/ci.yml` | Mesma estratégia no GitHub (remoto público atual) |
+
+- Stage/job `testar`: `npx playwright test`
+- Artifacts **sempre**: HTML, Allure results, JUnit
+- Stage/job `relatorio` / `gerar_allure`: HTML Allure quando possível
+- Ativação documentada no README (não dispara push/PR enquanto inativo)
 
 ## Como o avaliador deve navegar
 
 1. Ler este arquivo e o `README.md`
 2. Abrir `docs/casos-de-teste.md` (matriz ID → cenário)
 3. Rodar `npm ci && npm run testar`
-4. Ver pipeline GitLab e baixar artefatos de relatório
+4. Conferir os YAMLs de CI (inativos) e, se quiser, ativá-los conforme o README

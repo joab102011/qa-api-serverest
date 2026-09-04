@@ -2,7 +2,7 @@
 
 Suite de **automação de testes de API** da [ServeRest](https://serverest.dev/) usando **Playwright Test** e **TypeScript**.
 
-Case técnico de QA Automation — foco em autenticação JWT, CRUD de usuários, cenários negativos, CI/CD (GitLab) e relatórios.
+Case técnico de QA Automation — foco em autenticação JWT, CRUD de usuários, cenários negativos, CI/CD preparado (GitLab + GitHub Actions) e relatórios.
 
 ## Por que Playwright?
 
@@ -15,7 +15,7 @@ Escolhi Playwright pela experiência prévia com o framework, tipagem em TypeScr
 | Linguagem | TypeScript |
 | Framework | Playwright Test |
 | Relatórios | HTML Playwright + Allure + JUnit |
-| CI/CD | GitLab CI |
+| CI/CD | GitLab CI + GitHub Actions (preparados, **inativos**) |
 | API | ServeRest (`https://serverest.dev`) |
 
 ## Pré-requisitos
@@ -68,13 +68,27 @@ Matriz completa: [`docs/casos-de-teste.md`](docs/casos-de-teste.md).
 
 O PDF cita endpoints `/users`. A API sugerida (**ServeRest**) expõe `/usuarios`. Os testes usam os paths reais da documentação oficial.
 
-## CI/CD (GitLab)
+## Estratégia de CI (GitLab + GitHub Actions)
 
-Arquivo [`.gitlab-ci.yml`](.gitlab-ci.yml):
+O enunciado do Case API pede **CI com artefatos de relatório** (ferramenta livre). O Case Mobile exige **GitLab CI**. Por isso o planejamento ficou assim:
 
-1. Job `testar_api` — executa a suíte
-2. Publica artefatos **sempre** (`when: always`): `playwright-report/`, `allure-results/`, `test-results/`
+| Arquivo | Plataforma | Papel |
+|---------|------------|--------|
+| [`.gitlab-ci.yml`](.gitlab-ci.yml) | GitLab | Pipeline “oficial” alinhada ao desafio Mobile |
+| [`.github/workflows/ci.yml`](.github/workflows/ci.yml) | GitHub Actions | Espelho da mesma estratégia (mesmo fluxo e artefatos) |
+
+**Estado atual: CI inativo** nos dois YAMLs — não dispara pipeline automática em push/PR. A validação da suíte foi feita **localmente** (`npm run testar`). Os arquivos existem como evidência de planejamento e prontidão para ativar.
+
+### O que cada pipeline faz (quando ativada)
+
+1. Job `testar_api` — `npm ci` + `npx playwright test`
+2. Artefatos **sempre** (`when: always` / `if: always()`): `playwright-report/`, `allure-results/`, `test-results/`
 3. Job `gerar_allure` — gera HTML Allure quando possível
+
+### Como ativar
+
+- **GitLab:** em `.gitlab-ci.yml`, troque `workflow.rules` de `when: never` por regras de branch/MR.
+- **GitHub:** em `.github/workflows/ci.yml`, descomente `push`/`pull_request` e remova o `if: false` dos jobs.
 
 ## Estrutura
 
@@ -88,7 +102,8 @@ qa-api-serverest/
 │   └── esquemas/         # Asserts de contrato
 ├── testes/               # Specs Playwright
 ├── playwright.config.ts
-└── .gitlab-ci.yml
+├── .gitlab-ci.yml        # CI GitLab (inativo)
+└── .github/workflows/    # CI GitHub Actions (inativo)
 ```
 
 ## Limitações conhecidas
