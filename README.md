@@ -18,34 +18,98 @@ Escolhi Playwright pela experiência prévia com o framework, tipagem em TypeScr
 | CI/CD | GitLab CI + GitHub Actions (preparados, **inativos**) |
 | API | ServeRest (`https://serverest.dev`) |
 
-## Pré-requisitos
+## Pré-requisitos (só no PC)
 
-- Node.js 18+ (recomendado 20+)
-- npm
+| Ferramenta | Como |
+|------------|------|
+| **Node.js 20 LTS** | [nodejs.org](https://nodejs.org) → instalador → reinicie o terminal |
 
-## Setup
+```bash
+node -v
+npm -v
+```
+
+> Só isso. A suíte é de **API** (HTTP). O Playwright e o restante vêm com `npm ci`.  
+> Nos YAMLs de CI, a **imagem/container** já traz Node + Playwright — a pipeline não depende do que está instalado na sua máquina.
+
+## Setup (primeira vez)
+
+Abra o terminal **dentro da pasta** `qa-api-serverest` e rode:
 
 ```bash
 npm ci
 ```
 
-> Não é necessário instalar browsers para esta suíte (apenas API).
+> Esta suíte testa **API** (HTTP). Não abre o Chrome do site — o Playwright só envia requisições.  
+> O modo **UI** abaixo é a *tela do Playwright* para acompanhar os testes, não a interface da ServeRest.
 
-## Como executar
+---
+
+## Como executar (guia rápido)
+
+### A) Ver **todas** as specs na interface (modo UI)
+
+Ideal para quem quer **acompanhar** passo a passo na tela do Playwright:
 
 ```bash
-# Suite completa
+npm run testar:ui
+```
+
+1. Uma janela do Playwright abre.  
+2. Clique em ▶ para rodar tudo (ou escolha um arquivo à esquerda).  
+3. Feche a janela quando terminar.
+
+### B) Rodar **tudo** em modo headless (só no terminal, sem janela)
+
+Padrão para validação rápida / CI:
+
+```bash
 npm run testar
+```
 
-# Somente login
-npm run testar:login
+### C) Rodar **somente uma** spec em modo headless
 
-# Somente usuarios
-npm run testar:usuarios
+Troque o arquivo pelo que quiser:
 
-# Relatorio HTML
+| O que testar | Comando |
+|--------------|---------|
+| Login | `npm run testar:login` |
+| CRUD de usuários | `npm run testar:crud` |
+| Negativos de usuários | `npm run testar:negativos` |
+| Rotas protegidas (JWT) | `npm run testar:protegidos` |
+| CRUD + negativos juntos | `npm run testar:usuarios` |
+
+Ou, na mão (mesmo efeito):
+
+```bash
+npx playwright test testes/login.spec.ts
+npx playwright test testes/usuarios.crud.spec.ts
+npx playwright test testes/usuarios.negativos.spec.ts
+npx playwright test testes/autenticacao.protegidos.spec.ts
+```
+
+### D) Uma spec específica **dentro do modo UI**
+
+```bash
+npx playwright test testes/login.spec.ts --ui
+```
+
+### E) Ver o relatório HTML depois
+
+```bash
 npm run relatorio
 ```
+
+---
+
+### Resumo visual
+
+| Objetivo | Comando |
+|----------|---------|
+| Todas as specs **com tela** (UI) | `npm run testar:ui` |
+| Todas as specs **sem tela** (headless) | `npm run testar` |
+| **Uma** spec sem tela | `npm run testar:login` (ou outro da tabela) |
+| Uma spec **com tela** | `npx playwright test testes/NOME.spec.ts --ui` |
 
 Variável opcional de ambiente:
 
@@ -77,7 +141,7 @@ O enunciado do Case API pede **CI com artefatos de relatório** (ferramenta livr
 | [`.gitlab-ci.yml`](.gitlab-ci.yml) | GitLab | Pipeline “oficial” alinhada ao desafio Mobile |
 | [`.github/workflows/ci.yml`](.github/workflows/ci.yml) | GitHub Actions | Espelho da mesma estratégia (mesmo fluxo e artefatos) |
 
-**Estado atual: CI inativo** nos dois YAMLs — não dispara pipeline automática em push/PR. A validação da suíte foi feita **localmente** (`npm run testar`). Os arquivos existem como evidência de planejamento e prontidão para ativar.
+**Estado atual: CI inativo** nos dois YAMLs — não dispara pipeline automática em push/PR. A validação da suíte foi feita **localmente** (`npm ci` + `npm run testar`). Os YAMLs são **auto-suficientes**: usam a imagem oficial do Playwright (já traz Node e dependências de runtime); no job só entram `npm ci` e os testes.
 
 ### O que cada pipeline faz (quando ativada)
 
