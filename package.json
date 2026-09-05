@@ -5,9 +5,12 @@
   "private": true,
   "scripts": {
     "testar": "playwright test",
+    "testar:ui": "playwright test --ui",
     "testar:login": "playwright test testes/login.spec.ts",
     "testar:usuarios": "playwright test testes/usuarios.crud.spec.ts testes/usuarios.negativos.spec.ts",
-    "testar:ui": "playwright test --ui",
+    "testar:crud": "playwright test testes/usuarios.crud.spec.ts",
+    "testar:negativos": "playwright test testes/usuarios.negativos.spec.ts",
+    "testar:protegidos": "playwright test testes/autenticacao.protegidos.spec.ts",
     "relatorio": "playwright show-report",
     "relatorio:allure": "allure generate allure-results --clean -o allure-report && allure open allure-report"
   },
@@ -21,7 +24,7 @@
   "author": "Joab Cruz",
   "license": "MIT",
   "devDependencies": {
-    "@playwright/test": "^1.49.0",
+    "@playwright/test": "~1.62.1",
     "@types/node": "^22.10.0",
     "allure-commandline": "^2.32.0",
     "allure-playwright": "^3.0.6",

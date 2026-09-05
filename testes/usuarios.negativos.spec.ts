@@ -10,23 +10,27 @@ test.describe('USER — Cenarios negativos', () => {
     let idUsuario = '';
     let segundaResposta!: Awaited<ReturnType<typeof cliente.criarUsuario>>;
 
-    await dado('que ja existe um usuario com determinado email', async () => {
-      const primeiro = await cliente.criarUsuario(massa);
-      expect(primeiro.status()).toBe(201);
-      ({ _id: idUsuario } = await primeiro.json());
-    });
+    try {
+      await dado('que ja existe um usuario com determinado email', async () => {
+        const primeiro = await cliente.criarUsuario(massa);
+        expect(primeiro.status()).toBe(201);
+        ({ _id: idUsuario } = await primeiro.json());
+      });
 
-    await quando('tento cadastrar novamente com o mesmo email', async () => {
-      segundaResposta = await cliente.criarUsuario(massa);
-    });
+      await quando('tento cadastrar novamente com o mesmo email', async () => {
+        segundaResposta = await cliente.criarUsuario(massa);
+      });
 
-    await entao('recebo 400 informando que o email ja esta em uso', async () => {
-      expect(segundaResposta.status()).toBe(400);
-      const corpo = await segundaResposta.json();
-      expect(corpo.message).toBe('Este email já está sendo usado');
-    });
-
-    await cliente.excluirUsuarioPorId(idUsuario);
+      await entao('recebo 400 informando que o email ja esta em uso', async () => {
+        expect(segundaResposta.status()).toBe(400);
+        const corpo = await segundaResposta.json();
+        expect(corpo.message).toBe('Este email já está sendo usado');
+      });
+    } finally {
+      if (idUsuario) {
+        await cliente.excluirUsuarioPorId(idUsuario);
+      }
+    }
   });
 
   test('USER-N02 | nao deve criar usuario sem campos obrigatorios', async ({
@@ -47,10 +51,12 @@ test.describe('USER — Cenarios negativos', () => {
       });
     });
 
-    await entao('recebo status 400 de validacao', async () => {
+    await entao('recebo 400 com validacao de nome, email e password em branco', async () => {
       expect(resposta.status()).toBe(400);
       const corpo = await resposta.json();
-      expect(corpo).toBeTruthy();
+      expect(corpo.nome).toMatch(/nome.*branco/i);
+      expect(corpo.email).toMatch(/email.*branco/i);
+      expect(corpo.password).toMatch(/password.*branco/i);
     });
   });
 
@@ -78,28 +84,37 @@ test.describe('USER — Cenarios negativos', () => {
     const massa = criarMassaUsuario();
     const idFantasma = `fantasma_${Date.now()}`;
     let corpo: { _id?: string; message?: string } = {};
+    let idParaLimpar = '';
 
-    await dado('que o _id informado nao existe na base', async () => {
-      expect(idFantasma).toContain('fantasma_');
-    });
+    try {
+      await dado('que o _id informado nao existe na base', async () => {
+        expect(idFantasma).toContain('fantasma_');
+      });
 
-    await quando('envio PUT /usuarios/{_id} com dados validos', async () => {
-      const resposta = await cliente.atualizarUsuario(idFantasma, massa);
-      expect([200, 201]).toContain(resposta.status());
-      corpo = await resposta.json();
-    });
+      await quando('envio PUT /usuarios/{_id} com dados validos', async () => {
+        const resposta = await cliente.atualizarUsuario(idFantasma, massa);
+        expect([200, 201]).toContain(resposta.status());
+        corpo = await resposta.json();
+      });
 
-    await entao('a API realiza cadastro ou altera e eu limpo o registro gerado', async () => {
-      if (corpo._id) {
-        await cliente.excluirUsuarioPorId(corpo._id);
-      } else {
-        const lista = await cliente.listarUsuarios({ email: massa.email });
-        const dados = await lista.json();
-        if (dados.usuarios?.[0]?._id) {
-          await cliente.excluirUsuarioPorId(dados.usuarios[0]._id);
+      await entao('a API realiza cadastro ou altera e eu limpo o registro gerado', async () => {
+        expect(corpo.message || corpo._id).toBeTruthy();
+        if (corpo._id) {
+          idParaLimpar = corpo._id;
+        } else {
+          const lista = await cliente.listarUsuarios({ email: massa.email });
+          const dados = await lista.json();
+          if (dados.usuarios?.[0]?._id) {
+            idParaLimpar = dados.usuarios[0]._id;
+          }
         }
+        expect(idParaLimpar).toBeTruthy();
+      });
+    } finally {
+      if (idParaLimpar) {
+        await cliente.excluirUsuarioPorId(idParaLimpar);
       }
-    });
+    }
   });
 
   test('USER-N05 | excluir id inexistente deve informar ausencia', async ({

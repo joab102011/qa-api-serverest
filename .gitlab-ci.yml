@@ -1,9 +1,9 @@
 # =============================================================================
 # GitLab CI — INATIVO por padrao
 # =============================================================================
-# Pipeline espelhada no GitHub Actions (.github/workflows/ci.yml).
-# Nao cria pipeline automatica. Para ativar: altere workflow.rules abaixo
-# (ex.: permitir default branch / MR). Detalhes: README.md (Estrategia de CI).
+# Pipeline auto-suficiente: imagem oficial Playwright (Node + browsers/deps).
+# No runner: npm ci + playwright test + artefatos always. Sem setup manual.
+# Espelho: .github/workflows/ci.yml | Ativar: trocar workflow.rules (README).
 # =============================================================================
 
 workflow:
@@ -15,7 +15,7 @@ stages:
   - relatorio
 
 variaveis_padrao: &node
-  image: mcr.microsoft.com/playwright:v1.49.1-jammy
+  image: mcr.microsoft.com/playwright:v1.62.1-jammy
   cache:
     key: ${CI_COMMIT_REF_SLUG}
     paths:
@@ -24,8 +24,10 @@ variaveis_padrao: &node
 testar_api:
   <<: *node
   stage: testar
-  script:
+  before_script:
+    - node -v && npm -v
     - npm ci
+  script:
     - npx playwright test
   artifacts:
     when: always
@@ -44,8 +46,9 @@ gerar_allure:
   <<: *node
   stage: relatorio
   needs: ["testar_api"]
-  script:
+  before_script:
     - npm ci
+  script:
     - npx allure generate allure-results --clean -o allure-report || true
   artifacts:
     when: always

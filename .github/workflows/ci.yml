@@ -1,9 +1,9 @@
 # =============================================================================
 # GitHub Actions — INATIVO por padrao
 # =============================================================================
-# Espelho da estrategia do .gitlab-ci.yml (mesmos jobs, artefatos always).
-# Nao dispara em push/PR. Para ativar: descomente os eventos em `on:` e remova
-# o `if: false` do job. Detalhes: README.md (secao Estrategia de CI).
+# Pipeline auto-suficiente: container Playwright oficial + npm ci + testes.
+# Sem instalar browser/deps na maquina do avaliador. Artefatos always.
+# Espelho: .gitlab-ci.yml | Ativar: descomentar push/PR e remover if: false.
 # =============================================================================
 
 name: CI API ServeRest
@@ -19,12 +19,12 @@ jobs:
   testar_api:
     if: false # CI inativo — remova esta linha ao ativar
     runs-on: ubuntu-latest
-    container: mcr.microsoft.com/playwright:v1.49.1-jammy
+    container: mcr.microsoft.com/playwright:v1.62.1-jammy
     steps:
       - uses: actions/checkout@v4
-      - name: Instalar dependencias
+      - name: Instalar dependencias do projeto
         run: npm ci
-      - name: Executar suite Playwright
+      - name: Executar suite Playwright (headless / API)
         run: npx playwright test
         env:
           URL_BASE: ${{ vars.URL_BASE }}
@@ -49,6 +49,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "20"
+          cache: npm
       - name: Instalar dependencias
         run: npm ci
       - name: Baixar allure-results

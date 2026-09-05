@@ -11,28 +11,32 @@ test.describe('AUTH — Rotas protegidas com JWT', () => {
     let idProduto = '';
     let resposta!: Awaited<ReturnType<typeof cliente.criarProduto>>;
 
-    await dado('que possuo um token JWT de administrador valido', async () => {
-      expect(tokenAutenticacao.startsWith('Bearer ')).toBeTruthy();
-    });
-
-    await quando('cadastro um produto autenticado em POST /produtos', async () => {
-      resposta = await cliente.criarProduto(tokenAutenticacao, {
-        nome: nomeProduto,
-        preco: 100,
-        descricao: 'Produto criado no teste de autenticacao',
-        quantidade: 10,
+    try {
+      await dado('que possuo um token JWT de administrador valido', async () => {
+        expect(tokenAutenticacao.startsWith('Bearer ')).toBeTruthy();
       });
-    });
 
-    await entao('recebo 201 com _id do produto', async () => {
-      expect(resposta.status()).toBe(201);
-      const corpo = await resposta.json();
-      expect(corpo.message).toBe('Cadastro realizado com sucesso');
-      expect(corpo._id).toBeTruthy();
-      idProduto = corpo._id;
-    });
+      await quando('cadastro um produto autenticado em POST /produtos', async () => {
+        resposta = await cliente.criarProduto(tokenAutenticacao, {
+          nome: nomeProduto,
+          preco: 100,
+          descricao: 'Produto criado no teste de autenticacao',
+          quantidade: 10,
+        });
+      });
 
-    await cliente.excluirProdutoPorId(tokenAutenticacao, idProduto);
+      await entao('recebo 201 com _id do produto', async () => {
+        expect(resposta.status()).toBe(201);
+        const corpo = await resposta.json();
+        expect(corpo.message).toBe('Cadastro realizado com sucesso');
+        expect(corpo._id).toBeTruthy();
+        idProduto = corpo._id;
+      });
+    } finally {
+      if (idProduto) {
+        await cliente.excluirProdutoPorId(tokenAutenticacao, idProduto);
+      }
+    }
   });
 
   test('AUTH-P02 | token invalido nao deve cadastrar produto', async ({
