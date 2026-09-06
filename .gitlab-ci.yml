@@ -1,16 +1,25 @@
 # =============================================================================
-# GitLab CI — INATIVO por padrao
+# GitLab CI — INATIVO por padrao (quality gate pronto para ligar)
 # =============================================================================
-# Pipeline auto-suficiente: imagem oficial Playwright (Node + browsers/deps).
-# No runner: npm ci + playwright test + artefatos always. Sem setup manual.
-# Espelho: .github/workflows/ci.yml | Ativar: trocar workflow.rules (README).
+# COMO ATIVAR:
+#   Troque o bloco workflow.rules abaixo por:
+#
+#   workflow:
+#     rules:
+#       - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+#       - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+#
+# Camadas: verificar_tipos → smoke_api → testar_api → gerar_allure
+# Espelho GitHub: .github/workflows/ci.yml
 # =============================================================================
 
 workflow:
   rules:
-    - when: never # CI inativo — troque por rules de branch/MR ao ativar
+    - when: never # CI inativo — substitua pelas rules do comentario acima
 
 stages:
+  - verificar
+  - smoke
   - testar
   - relatorio
 
@@ -21,9 +30,40 @@ variaveis_padrao: &node
     paths:
       - node_modules/
 
+verificar_tipos:
+  <<: *node
+  stage: verificar
+  before_script:
+    - npm ci
+  script:
+    - npm run verificar:tipos
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+
+smoke_api:
+  <<: *node
+  stage: smoke
+  needs: ["verificar_tipos"]
+  before_script:
+    - npm ci
+  script:
+    - npm run testar:smoke
+  artifacts:
+    when: always
+    paths:
+      - playwright-report/
+      - allure-results/
+      - test-results/
+    expire_in: 7 days
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+
 testar_api:
   <<: *node
   stage: testar
+  needs: ["smoke_api"]
   before_script:
     - node -v && npm -v
     - npm ci

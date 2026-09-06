@@ -4,7 +4,7 @@ import { validarRespostaLogin } from '../src/esquemas/usuario.esquema';
 import { dado, quando, entao } from '../src/ajudas/passos.bdd';
 
 test.describe('AUTH — Login', () => {
-  test('AUTH-001 | deve realizar login com credenciais validas e retornar JWT', async ({
+  test('AUTH-001 | deve realizar login com credenciais validas e retornar JWT @smoke', async ({
     cliente,
   }) => {
     let massa = criarMassaUsuario({ administrador: 'true' });

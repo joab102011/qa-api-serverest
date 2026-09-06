@@ -119,6 +119,25 @@ Variável opcional de ambiente:
 
 ## O que é coberto
 
+### Rastreabilidade (requisito do PDF → testes)
+
+| Requisito do enunciado | Como cobrimos | IDs |
+|------------------------|---------------|-----|
+| CRUD de usuários REST | CREATE/READ/UPDATE/DELETE + E2E | USER-001…007 |
+| Autenticação JWT | Login + uso do token em rota protegida | AUTH-001, AUTH-P01…P03 |
+| Campos obrigatórios / negativos | Massa inválida e mensagens da API | AUTH-002…004, USER-N01…N06 |
+| Rate limit 100 req/min | Contexto documentado; workers=1 + e-mails únicos (API pública compartilhada) | — (ver Limitações) |
+| Pipeline CI + artefatos | GitLab + GitHub Actions (smoke → regressão → Allure) | `.gitlab-ci.yml`, `.github/workflows/ci.yml` |
+| Documentação + README | Este arquivo + matriz detalhada | `docs/` |
+
+### Camadas de execução (esteira)
+
+| Camada | Comando | Conteúdo |
+|--------|---------|----------|
+| **Smoke** (gate rápido) | `npm run testar:smoke` | AUTH-001, USER-001, USER-002, AUTH-P01 (`@smoke`) |
+| **Regressão** | `npm run testar` | 20 testes |
+| **Typecheck** | `npm run verificar:tipos` | `tsc --noEmit` (também no CI quando ativado) |
+
 | ID | Cenário |
 |----|---------|
 | AUTH-001…004 | Login válido e negativos |
@@ -149,10 +168,28 @@ O enunciado do Case API pede **CI com artefatos de relatório** (ferramenta livr
 2. Artefatos **sempre** (`when: always` / `if: always()`): `playwright-report/`, `allure-results/`, `test-results/`
 3. Job `gerar_allure` — gera HTML Allure quando possível
 
-### Como ativar
+### Como ativar a CI (texto pronto)
 
-- **GitLab:** em `.gitlab-ci.yml`, troque `workflow.rules` de `when: never` por regras de branch/MR.
-- **GitHub:** em `.github/workflows/ci.yml`, descomente `push`/`pull_request` e remova o `if: false` dos jobs.
+A pipeline está **pronta** (typecheck → smoke → regressão → Allure), porém **desligada** para não gastar runner sem revisão.
+
+**GitHub Actions** (`.github/workflows/ci.yml`):
+
+1. Descomente `push` / `pull_request` em `on:`.
+2. Remova todas as linhas `if: false` dos jobs.
+3. Faça push na `main` ou abra um PR — artefatos sobem com `if: always()`.
+
+**GitLab CI** (`.gitlab-ci.yml`):
+
+1. Substitua `workflow.rules: - when: never` por:
+
+```yaml
+workflow:
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+```
+
+2. Push / MR — jobs `verificar_tipos`, `smoke_api`, `testar_api` e `gerar_allure` passam a rodar.
 
 ## Estrutura
 

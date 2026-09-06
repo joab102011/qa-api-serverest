@@ -3,7 +3,7 @@ import { randomUUID } from 'crypto';
 import { dado, quando, entao } from '../src/ajudas/passos.bdd';
 
 test.describe('AUTH — Rotas protegidas com JWT', () => {
-  test('AUTH-P01 | admin autenticado deve conseguir cadastrar produto', async ({
+  test('AUTH-P01 | admin autenticado deve conseguir cadastrar produto @smoke', async ({
     apiAutenticada,
   }) => {
     const { cliente, tokenAutenticacao } = apiAutenticada;

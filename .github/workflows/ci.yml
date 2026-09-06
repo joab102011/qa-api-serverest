@@ -1,30 +1,69 @@
 # =============================================================================
-# GitHub Actions — INATIVO por padrao
+# GitHub Actions — INATIVO por padrao (quality gate pronto para ligar)
 # =============================================================================
-# Pipeline auto-suficiente: container Playwright oficial + npm ci + testes.
-# Sem instalar browser/deps na maquina do avaliador. Artefatos always.
-# Espelho: .gitlab-ci.yml | Ativar: descomentar push/PR e remover if: false.
+# COMO ATIVAR (3 passos):
+#   1) Descomente os blocos push / pull_request em "on:"
+#   2) Remova "if: false" dos jobs abaixo
+#   3) Push na main ou abra um PR — artefatos sobem sempre (when: always)
+#
+# Camadas: smoke (feedback rapido) → regressao completa → Allure HTML
+# Espelho GitLab: .gitlab-ci.yml
 # =============================================================================
 
 name: CI API ServeRest
 
 on:
   workflow_dispatch:
+  # --- ATIVAR: descomente ---
   # push:
   #   branches: [main]
   # pull_request:
   #   branches: [main]
 
 jobs:
+  verificar_tipos:
+    if: false # ATIVAR: remova esta linha
+    runs-on: ubuntu-latest
+    container: mcr.microsoft.com/playwright:v1.62.1-jammy
+    steps:
+      - uses: actions/checkout@v4
+      - run: npm ci
+      - name: Typecheck (tsc --noEmit)
+        run: npm run verificar:tipos
+
+  smoke_api:
+    if: false # ATIVAR: remova esta linha
+    needs: [verificar_tipos]
+    runs-on: ubuntu-latest
+    container: mcr.microsoft.com/playwright:v1.62.1-jammy
+    steps:
+      - uses: actions/checkout@v4
+      - run: npm ci
+      - name: Smoke (@smoke) — gate rapido
+        run: npm run testar:smoke
+        env:
+          URL_BASE: ${{ vars.URL_BASE }}
+      - name: Artefatos smoke
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: relatorios-api-smoke
+          path: |
+            playwright-report/
+            allure-results/
+            test-results/
+          retention-days: 7
+
   testar_api:
-    if: false # CI inativo — remova esta linha ao ativar
+    if: false # ATIVAR: remova esta linha
+    needs: [smoke_api]
     runs-on: ubuntu-latest
     container: mcr.microsoft.com/playwright:v1.62.1-jammy
     steps:
       - uses: actions/checkout@v4
       - name: Instalar dependencias do projeto
         run: npm ci
-      - name: Executar suite Playwright (headless / API)
+      - name: Regressao completa Playwright (API)
         run: npx playwright test
         env:
           URL_BASE: ${{ vars.URL_BASE }}
@@ -40,7 +79,7 @@ jobs:
           retention-days: 7
 
   gerar_allure:
-    if: false # CI inativo — remova esta linha ao ativar
+    if: false # ATIVAR: remova esta linha
     needs: [testar_api]
     runs-on: ubuntu-latest
     continue-on-error: true

@@ -11,7 +11,7 @@ import {
 import { dado, quando, entao } from '../src/ajudas/passos.bdd';
 
 test.describe('USER — CRUD de usuarios', () => {
-  test('USER-001 | deve listar usuarios cadastrados', async ({ cliente }) => {
+  test('USER-001 | deve listar usuarios cadastrados @smoke', async ({ cliente }) => {
     let resposta!: Awaited<ReturnType<typeof cliente.listarUsuarios>>;
 
     await dado('que a API ServeRest esta disponivel', async () => {
@@ -29,7 +29,7 @@ test.describe('USER — CRUD de usuarios', () => {
     });
   });
 
-  test('USER-002 | deve criar usuario administrador', async ({ cliente }) => {
+  test('USER-002 | deve criar usuario administrador @smoke', async ({ cliente }) => {
     const massa = criarMassaUsuario({ administrador: 'true' });
     let resposta!: Awaited<ReturnType<typeof cliente.criarUsuario>>;
     let idUsuario = '';
